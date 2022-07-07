@@ -6,8 +6,6 @@ import random
 import cv2
 from functools import partial
 
-import torch
-
 from perlin import rand_perlin_2d_np
 
 
