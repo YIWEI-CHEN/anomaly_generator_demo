@@ -60,14 +60,14 @@ class AnomalyGenerator(object):
         start_x, start_y, end_x, end_y = 0, 0, self.resize_shape[1], self.resize_shape[0]
         image = self.load_image(image_path, cv2.IMREAD_COLOR)
 
-        anomaly_source_idx = torch.randint(0, len(self.anomaly_source_paths), (1,)).item()
+        anomaly_source_idx = random.randint(0, len(self.anomaly_source_paths) - 1)
         anomaly_source_path = self.anomaly_source_paths[anomaly_source_idx]
         anomaly_source_img = self.load_image(anomaly_source_path, cv2.IMREAD_COLOR, floating=False)
         anomaly_img_augmented = self.randAugmenter()(image=anomaly_source_img)
 
         min_perlin_scale = 0
-        perlin_scalex = 2 ** (torch.randint(min_perlin_scale, perlin_scale, (1,)).numpy()[0])
-        perlin_scaley = 2 ** (torch.randint(min_perlin_scale, perlin_scale, (1,)).numpy()[0])
+        perlin_scalex = 2 ** (random.randint(min_perlin_scale, perlin_scale))
+        perlin_scaley = 2 ** (random.randint(min_perlin_scale, perlin_scale))
         threshold = 0.5
         trial = 0
         while trial < self.retry:
@@ -84,7 +84,7 @@ class AnomalyGenerator(object):
         perlin_thr = np.expand_dims(perlin_thr, axis=2)
 
         img_thr = (anomaly_img_augmented * perlin_thr / 255.0).astype(np.float32)
-        beta = torch.rand(1).numpy()[0] * beta
+        beta = random.random() * beta
         augmented_image = image * (1 - perlin_thr) + (1 - beta) * img_thr + beta * image * (perlin_thr)
 
         augmented_image = augmented_image.astype(np.float32)
