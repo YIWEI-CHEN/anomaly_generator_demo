@@ -6,11 +6,12 @@ import random
 import cv2
 from functools import partial
 
+from contour_detection import object_detection
 from perlin import rand_perlin_2d_np
 
 
 class AnomalyGenerator(object):
-    def __init__(self, resize_shape=None):
+    def __init__(self, img_path, resize_shape=None):
         anomaly_source_path = os.path.join('static', 'anomaly_source')
         self.anomaly_source_paths = sorted(glob.glob(anomaly_source_path + "/*.jpg"))
         self.augmenters = [iaa.GammaContrast((0.5, 2.0), per_channel=True),
@@ -26,6 +27,11 @@ class AnomalyGenerator(object):
                            ]
         self.resize_shape = resize_shape
         self.retry = 20
+        self.img_path = img_path
+        self.img = self.load_image(self.img_path, cv2.IMREAD_COLOR, False, floating=False)
+        x, y, w, h = object_detection(img=self.img)
+        self.start_x, self.start_y = x, y
+        self.end_x, self.end_y = x + w, y + h
 
     def rotate(self, angle=None):
         if angle is None:
@@ -54,9 +60,9 @@ class AnomalyGenerator(object):
             image = (image / 255.0).astype(np.float32)
         return image
 
-    def perlin_noise(self, image_path, perlin_scale=6, beta=0.8):
-        start_x, start_y, end_x, end_y = 0, 0, self.resize_shape[1], self.resize_shape[0]
-        image = self.load_image(image_path, cv2.IMREAD_COLOR)
+    def perlin_noise(self, perlin_scale=6, beta=0.8):
+        start_x, start_y, end_x, end_y = self.start_x, self.start_y, self.end_x, self.end_y
+        image = (self.img / 255.0).astype(np.float32)
 
         anomaly_source_idx = random.randint(0, len(self.anomaly_source_paths) - 1)
         anomaly_source_path = self.anomaly_source_paths[anomaly_source_idx]
@@ -117,11 +123,11 @@ class AnomalyGenerator(object):
             v1, v2 = np.random.randint(low, high, size=2)
         return v1, v2
 
-    def scar(self, image_path, cutpaste=False):
-        start_x, start_y, end_x, end_y = 0, 0, self.resize_shape[1], self.resize_shape[0]
+    def scar(self, cutpaste=False):
+        start_x, start_y, end_x, end_y = self.start_x, self.start_y, self.end_x, self.end_y
         scar_max = self.resize_shape[0] // 5
         thickness_max = self.resize_shape[0] // 16
-        image = self.load_image(image_path, cv2.IMREAD_COLOR, False, floating=False)
+        image = self.img
         aug_img = image.copy()
         thickness = random.randint(1, thickness_max)
 
@@ -171,9 +177,9 @@ class AnomalyGenerator(object):
 
         return image, aug_img
 
-    def cutout(self, image_path, area_ratio=(0.007, 0.07), aspect_ratio=(0.3, 3.3), cutpaste=False):
-        start_x, start_y, end_x, end_y = 0, 0, self.resize_shape[1], self.resize_shape[0]
-        image = self.load_image(image_path, cv2.IMREAD_COLOR, False, floating=False)
+    def cutout(self, area_ratio=(0.007, 0.07), aspect_ratio=(0.3, 3.3), cutpaste=False):
+        start_x, start_y, end_x, end_y = self.start_x, self.start_y, self.end_x, self.end_y
+        image = self.img
         aug_img = image.copy()
 
         org_w, org_h = end_x, end_y
@@ -221,11 +227,11 @@ class AnomalyGenerator(object):
 
         return image, aug_img
 
-    def cutpaste(self, image_path):
-        return self.cutout(image_path, cutpaste=True)
+    def cutpaste(self):
+        return self.cutout(cutpaste=True)
 
-    def cutpaste_scar(self, image_path):
-        return self.scar(image_path, cutpaste=True)
+    def cutpaste_scar(self):
+        return self.scar(cutpaste=True)
 
 
 if __name__ == '__main__':

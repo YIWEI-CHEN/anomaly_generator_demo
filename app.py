@@ -46,7 +46,7 @@ def upload_file():
             name = filename.split('.')[0]
             aug_dir = os.path.join(app.config["UPLOAD_FOLDER"], f"aug_{name}_{timestamp}")
             os.makedirs(aug_dir, exist_ok=True)
-            generator = AnomalyGenerator(resize_shape=(256, 256))
+            generator = AnomalyGenerator(img_path, resize_shape=(256, 256))
             aug_img_paths = []
             for style, aug_func in (
                 ("Perlin Noise", generator.perlin_noise),
@@ -55,7 +55,7 @@ def upload_file():
                 ("Cutpaste", generator.cutpaste),
                 ("Cutpaste Scar", generator.cutpaste_scar),
             ):
-                _, aug_img = aug_func(img_path)
+                _, aug_img = aug_func()
                 aug_img_path = os.path.join(aug_dir, f"{name}_{style}.png")
                 cv2.imwrite(aug_img_path, aug_img)
                 aug_img_paths.append((style, '/'.join(aug_img_path.split('/')[1:])))
