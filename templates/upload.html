@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<style>
+h1 {
+  text-align: center;
+}
+{#h2 {#}
+{#  text-align: center;#}
+{#}#}
+.tg  {border-collapse:collapse;border-spacing:0;}
+.tg td{border-color:black;border-style:solid;border-width:1px;font-family:Arial, sans-serif;font-size:14px;
+  overflow:hidden;padding:10px 5px;word-break:normal;}
+.tg th{border-color:black;border-style:solid;border-width:1px;font-family:Arial, sans-serif;font-size:14px;
+  font-weight:normal;overflow:hidden;padding:10px 5px;word-break:normal;}
+.tg .tg-c3ow{border-color:inherit;text-align:center;vertical-align:top}
+.tg .tg-0pky{border-color:inherit;text-align:left;vertical-align:top}
+</style>
+<head>
+    <meta charset="UTF-8">
+    <title>Anomaly Generator Demo</title>
+</head>
+{#<body>#}
+{#    <form method="POST" enctype="multipart/form-data">#}
+{#         <input type="file" name="file" />#}
+{#         <input type="submit" value="Upload "/>#}
+{#    </form>#}
+{#</body>#}
+<h1>Anomaly Generator</h1>
+<hr>
+<h2>Upload an Image</h2>
+<p>
+	{% with messages = get_flashed_messages() %}
+	  {% if messages %}
+		<ul>
+		{% for message in messages %}
+		  <li>{{ message }}</li>
+		{% endfor %}
+		</ul>
+	  {% endif %}
+	{% endwith %}
+</p>
+{% if filename %}
+	<div>
+		<img src="{{ url_for('display_image', filename=filename) }}" width="400" height="400">
+	</div>
+{% endif %}
+<form method="post" action="/" enctype="multipart/form-data">
+    <dl>
+		<p>
+			<input type="file" name="file" autocomplete="off" required>
+		</p>
+    </dl>
+    <p>
+		<input type="submit" value="Upload">
+	</p>
+</form>
+{% if aug_img_paths %}
+    <h2>Generated Anomalous Images</h2>
+{#    {% for style, img_path in aug_img_paths %}#}
+{#        <p>{{ style }}</p>#}
+{#        <div>#}
+{#            <img src="{{ url_for('static', filename=img_path) }}">#}
+{#	    </div>#}
+{#    {% endfor %}#}
+    <table class="tg">
+    <thead>
+        <tr>
+            {% for style, _ in aug_img_paths %}
+                <th class="tg-c3ow">{{ style }}</th>
+            {% endfor %}
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            {% for _, img_path in aug_img_paths %}
+                <td class="tg-0pky"><img src="{{ url_for('static', filename=img_path) }}"></td>
+            {% endfor %}
+        </tr>
+    </tbody>
+    </table>
+{% endif %}
+</html>
